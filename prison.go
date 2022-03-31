@@ -96,26 +96,6 @@ func (p *Prison) PopperWithResolution(ctx context.Context, resolution time.Durat
 				for _, item := range poppedItems {
 					ch <- item
 				}
-
-				// check when's the next item and sleep for such duration
-				// this is to not waste CPU cycles on swapping non-poppable items
-				gotLock := p.mu.TryLock()
-				if !gotLock {
-					// couldn't lock -> ignore checking
-					continue
-				}
-
-				first := p.dr.GetFirst()
-				if first == nil {
-					p.mu.Unlock()
-					continue
-				}
-				nextT := time.Until(first.Deadline)
-				if nextT > res {
-					time.Sleep(nextT)
-				}
-
-				p.mu.Unlock()
 			}
 		}
 	}(resolution)

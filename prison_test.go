@@ -359,20 +359,41 @@ func TestPrisonComplex(t *testing.T) {
 }
 
 func TestPrisonPopper(t *testing.T) {
+	start := time.Now()
 	p := NewPrison()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	batchN := 10
+	popped := make(chan *Item, batchN)
+
+	go func() {
+		c := p.Popper(ctx)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case item := <-c:
+				t.Logf("popped item `%s` after %+v", item.ID, time.Since(start))
+				popped <- item
+			}
+		}
+	}()
+
+	p.Push("BIIIG0", 2*time.Minute)
+
+	time.Sleep(500 * time.Millisecond)
+
 	for i := 0; i < batchN; i++ {
 		p.Push(fmt.Sprintf("item%d", i), time.Duration(i/2)*time.Second)
 	}
 
-	now := time.Now()
-	c := p.Popper(ctx)
+	dur := time.Since(start)
+	if dur > 10*time.Second {
+		t.Errorf("took too long: %v", dur)
+	}
+
 	for i := 0; i < batchN; i++ {
-		item := <-c
-		t.Logf("popped item `%s` after %+v", item.ID, time.Since(now))
+		<-popped
 	}
 }
