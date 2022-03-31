@@ -9,12 +9,17 @@ import (
 
 const DEFAULT_POPPER_RESOLUTION = 100 * time.Millisecond
 
+// Prison takes care of its prisoners (items) and their executions (timeouts).
+// Prison is the main structure in this package. It contains a priority queue based on the
+// deadlines of its items as well as backreferences to the items
+// in the queue, which makes accessing the dead items as well as specific items easy and efficient
 type Prison[K comparable] struct {
 	mu    sync.Mutex
 	dr    *deathRow[K]
 	items map[K]Item[K]
 }
 
+// NewPrison creates new Prison without any items
 func NewPrison[K comparable]() *Prison[K] {
 	return &Prison[K]{
 		dr:    newDeathRow[K](),
@@ -22,6 +27,7 @@ func NewPrison[K comparable]() *Prison[K] {
 	}
 }
 
+// Push adds new item to the Prison. If the item already exists, its TTL is prolonged by `ttl`
 func (p *Prison[K]) Push(itemID K, ttl time.Duration) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -38,6 +44,8 @@ func (p *Prison[K]) Push(itemID K, ttl time.Duration) {
 	p.items[itemID] = item
 }
 
+// Pop pops all expired items in Prison.
+// If there are no such items, it returns empty slice
 func (p *Prison[K]) Pop() (items []Item[K]) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -61,6 +69,7 @@ func (p *Prison[K]) Pop() (items []Item[K]) {
 	return
 }
 
+// Drop removes an item from the Prison. It doesn't have to be expired
 func (p *Prison[K]) Drop(itemID K) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -74,10 +83,14 @@ func (p *Prison[K]) Drop(itemID K) {
 	delete(p.items, itemID)
 }
 
+// Popper is the same as PopperWithResolution but with the default resolution.
 func (p *Prison[K]) Popper(ctx context.Context) <-chan Item[K] {
 	return p.PopperWithResolution(ctx, DEFAULT_POPPER_RESOLUTION)
 }
 
+// PopperWithResolution returns a new channel
+// into which newly expired popped items are periodically (every `resolution`) pushed.
+// This loop ends when `ctx` is cancelled
 func (p *Prison[K]) PopperWithResolution(ctx context.Context, resolution time.Duration) <-chan Item[K] {
 	ch := make(chan Item[K])
 
