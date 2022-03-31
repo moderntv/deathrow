@@ -191,7 +191,6 @@ func Test_Prison_Pop(t *testing.T) {
 			gotItems := p.Pop()
 			gotItemIDs := []string{}
 			for _, item := range gotItems {
-				t.Logf("is item %s dead? %v", item.ID, item.IsDeadMan())
 				gotItemIDs = append(gotItemIDs, item.ID)
 			}
 

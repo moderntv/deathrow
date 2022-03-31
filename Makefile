@@ -6,7 +6,7 @@ test:
 		$(if $(TEST_VERBOSE),-v,) \
 		-race \
         -timeout 1h \
-		-coverprofile cp.out \
+		-coverprofile coverage.txt \
 		-run '$(TEST_RUN)' \
 		./...
 
