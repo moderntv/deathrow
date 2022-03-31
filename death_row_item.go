@@ -2,34 +2,45 @@ package deathrow
 
 import "time"
 
-// item contains the information about the expiration
+type Item interface {
+	ID() string
+	Deadline() time.Time
+	ShouldExecute() bool
+	Prolong(ttl time.Duration)
+
+	Index() int
+	SetIndex(int)
+}
+
+// Item contains the information about the expiration
 type item struct {
-	ID       string
-	Deadline time.Time
+	id       string
+	deadline time.Time
 	index    int // index in heap
 
 	ttl time.Duration
 }
 
-func newItem(id string, ttl time.Duration) *item {
+func NewItem(id string, ttl time.Duration) Item {
 	return &item{
-		ID:       id,
-		Deadline: time.Now().Add(ttl),
+		id:       id,
+		deadline: time.Now().Add(ttl),
 		index:    0,
 
 		ttl: ttl,
 	}
 }
 
-// IsDeadMan decides whether this item is after its deadline
-func (ag *item) IsDeadMan() bool {
-	return time.Now().After(ag.Deadline)
+func (i *item) ID() string          { return i.id }
+func (i *item) Deadline() time.Time { return i.deadline }
+func (i *item) Index() int          { return i.index }
+func (i *item) SetIndex(idx int)    { i.index = idx }
+
+// ShouldExecute decides whether this item is after its deadline
+func (i *item) ShouldExecute() bool {
+	return time.Now().After(i.deadline)
 }
 
-func (ag *item) prolongDefault() {
-	ag.prolong(ag.ttl)
-}
-
-func (ag *item) prolong(ttl time.Duration) {
-	ag.Deadline = time.Now().Add(ttl)
+func (i *item) Prolong(ttl time.Duration) {
+	i.deadline = time.Now().Add(ttl)
 }

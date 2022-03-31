@@ -19,7 +19,7 @@ func TestNewPrison(t *testing.T) {
 			want: &Prison{
 				mu:    sync.Mutex{},
 				dr:    newDeathRow(),
-				items: map[string]*item{},
+				items: map[string]Item{},
 			},
 		},
 	}
@@ -191,7 +191,7 @@ func Test_Prison_Pop(t *testing.T) {
 			gotItems := p.Pop()
 			gotItemIDs := []string{}
 			for _, item := range gotItems {
-				gotItemIDs = append(gotItemIDs, item.ID)
+				gotItemIDs = append(gotItemIDs, item.ID())
 			}
 
 			if !reflect.DeepEqual(gotItemIDs, tt.wantItemIDs) {
@@ -318,8 +318,8 @@ func Test_Prison_Drop(t *testing.T) {
 			}
 
 			for i, item := range *p.dr {
-				if i != item.index {
-					t.Errorf("group at %d has index %d", i, item.index)
+				if i != item.Index() {
+					t.Errorf("group at %d has index %d", i, item.Index())
 				}
 			}
 		})
@@ -342,8 +342,8 @@ func TestPrisonComplex(t *testing.T) {
 
 	p.mu.Lock()
 	for i, item := range *p.dr {
-		if i != item.index {
-			t.Errorf("group at %d has index %d", i, item.index)
+		if i != item.Index() {
+			t.Errorf("group at %d has index %d", i, item.Index())
 		}
 	}
 	p.mu.Unlock()
@@ -373,6 +373,6 @@ func TestPrisonPopper(t *testing.T) {
 	c := p.Popper(ctx)
 	for i := 0; i < batchN; i++ {
 		item := <-c
-		t.Logf("popped item `%s` after %+v", item.ID, time.Since(now))
+		t.Logf("popped item `%s` after %+v", item.ID(), time.Since(now))
 	}
 }

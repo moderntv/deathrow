@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type deathRow []*item
+type deathRow []Item
 
 func newDeathRow() *deathRow {
 	return &deathRow{}
@@ -15,7 +15,7 @@ func newDeathRow() *deathRow {
 func (dr deathRow) Len() int { return len(dr) }
 
 func (dr deathRow) Less(i, j int) bool {
-	return dr[i].Deadline.Before(dr[j].Deadline)
+	return dr[i].Deadline().Before(dr[j].Deadline())
 }
 
 func (dr deathRow) Swap(i, j int) {
@@ -26,14 +26,14 @@ func (dr deathRow) Swap(i, j int) {
 	// )
 
 	dr[i], dr[j] = dr[j], dr[i]
-	dr[i].index = i
-	dr[j].index = j
+	dr[i].SetIndex(i)
+	dr[j].SetIndex(j)
 }
 
 func (dr *deathRow) Push(x any) {
 	n := len(*dr)
-	item := x.(*item)
-	item.index = n
+	item := x.(Item)
+	item.SetIndex(n)
 
 	*dr = append(*dr, item)
 }
@@ -43,15 +43,15 @@ func (dr *deathRow) Pop() any {
 	n := len(old)
 
 	item := old[n-1]
-	old[n-1] = nil  // avoid memory leak
-	item.index = -1 // for safety
+	old[n-1] = nil    // avoid memory leak
+	item.SetIndex(-1) // for safety
 
 	*dr = old[0 : n-1]
 
 	return item
 }
 
-func (dr *deathRow) Get(idx int) *item {
+func (dr *deathRow) Get(idx int) Item {
 	if idx < 0 || idx >= len(*dr) {
 		return nil
 	}
@@ -59,25 +59,25 @@ func (dr *deathRow) Get(idx int) *item {
 	return (*dr)[idx]
 }
 
-func (dr *deathRow) GetFirst() *item {
+func (dr *deathRow) GetFirst() Item {
 	return dr.Get(0)
 }
 
-func (dr *deathRow) GetLast() *item {
+func (dr *deathRow) GetLast() Item {
 	return dr.Get(dr.Len() - 1)
 }
 
-func (dr *deathRow) prolong(item *item, ttl time.Duration) {
-	item.prolong(ttl)
+func (dr *deathRow) prolong(item Item, ttl time.Duration) {
+	item.Prolong(ttl)
 
-	heap.Fix(dr, item.index)
+	heap.Fix(dr, item.Index())
 }
 
-func (dr *deathRow) drop(item *item) {
+func (dr *deathRow) drop(item Item) {
 	// set very low time to keep it at top position
-	item.Deadline = time.Now().Add(-math.MaxInt)
+	item.Prolong(-math.MaxInt)
 	// remove will swap it to top and pop it - it should be poppable since its dead
-	heap.Remove(dr, item.index)
+	heap.Remove(dr, item.Index())
 }
 
 func (dr *deathRow) canPop() bool {
@@ -91,5 +91,5 @@ func (dr *deathRow) canPop() bool {
 		return false
 	}
 
-	return first.IsDeadMan()
+	return first.ShouldExecute()
 }
