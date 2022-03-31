@@ -9,20 +9,20 @@ import (
 
 const DEFAULT_POPPER_RESOLUTION = 100 * time.Millisecond
 
-type Prison struct {
+type Prison[K comparable] struct {
 	mu    sync.Mutex
-	dr    *deathRow
-	items map[string]Item
+	dr    *deathRow[K]
+	items map[K]Item[K]
 }
 
-func NewPrison() *Prison {
-	return &Prison{
-		dr:    newDeathRow(),
-		items: map[string]Item{},
+func NewPrison[K comparable]() *Prison[K] {
+	return &Prison[K]{
+		dr:    newDeathRow[K](),
+		items: map[K]Item[K]{},
 	}
 }
 
-func (p *Prison) Push(itemID string, ttl time.Duration) {
+func (p *Prison[K]) Push(itemID K, ttl time.Duration) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -38,11 +38,11 @@ func (p *Prison) Push(itemID string, ttl time.Duration) {
 	p.items[itemID] = item
 }
 
-func (p *Prison) Pop() (items []Item) {
+func (p *Prison[K]) Pop() (items []Item[K]) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	items = []Item{}
+	items = []Item[K]{}
 
 	for p.dr.canPop() {
 		itemI := heap.Pop(p.dr)
@@ -50,7 +50,7 @@ func (p *Prison) Pop() (items []Item) {
 			continue
 		}
 
-		item := itemI.(Item)
+		item := itemI.(Item[K])
 		items = append(items, item)
 	}
 
@@ -62,7 +62,7 @@ func (p *Prison) Pop() (items []Item) {
 	return
 }
 
-func (p *Prison) Drop(itemID string) {
+func (p *Prison[K]) Drop(itemID K) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -75,12 +75,12 @@ func (p *Prison) Drop(itemID string) {
 	delete(p.items, itemID)
 }
 
-func (p *Prison) Popper(ctx context.Context) <-chan Item {
+func (p *Prison[K]) Popper(ctx context.Context) <-chan Item[K] {
 	return p.PopperWithResolution(ctx, DEFAULT_POPPER_RESOLUTION)
 }
 
-func (p *Prison) PopperWithResolution(ctx context.Context, resolution time.Duration) <-chan Item {
-	ch := make(chan Item)
+func (p *Prison[K]) PopperWithResolution(ctx context.Context, resolution time.Duration) <-chan Item[K] {
+	ch := make(chan Item[K])
 
 	go func(res time.Duration) {
 		t := time.NewTicker(res)

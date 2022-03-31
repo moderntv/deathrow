@@ -6,19 +6,19 @@ import (
 	"time"
 )
 
-type deathRow []Item
+type deathRow[K comparable] []Item[K]
 
-func newDeathRow() *deathRow {
-	return &deathRow{}
+func newDeathRow[K comparable]() *deathRow[K] {
+	return &deathRow[K]{}
 }
 
-func (dr deathRow) Len() int { return len(dr) }
+func (dr deathRow[K]) Len() int { return len(dr) }
 
-func (dr deathRow) Less(i, j int) bool {
+func (dr deathRow[K]) Less(i, j int) bool {
 	return dr[i].Deadline().Before(dr[j].Deadline())
 }
 
-func (dr deathRow) Swap(i, j int) {
+func (dr deathRow[K]) Swap(i, j int) {
 	// log.Printf(
 	//     "swapping %s (i=%d, idx=%d, d=%v) and %s (j=%d, idx=%d,d=%v)",
 	//     dr[i].ID, i, dr[i].index, time.Until(dr[i].Deadline),
@@ -30,15 +30,15 @@ func (dr deathRow) Swap(i, j int) {
 	dr[j].SetIndex(j)
 }
 
-func (dr *deathRow) Push(x any) {
+func (dr *deathRow[K]) Push(x any) {
 	n := len(*dr)
-	item := x.(Item)
+	item := x.(Item[K])
 	item.SetIndex(n)
 
 	*dr = append(*dr, item)
 }
 
-func (dr *deathRow) Pop() any {
+func (dr *deathRow[K]) Pop() any {
 	old := *dr
 	n := len(old)
 
@@ -51,7 +51,7 @@ func (dr *deathRow) Pop() any {
 	return item
 }
 
-func (dr *deathRow) Get(idx int) Item {
+func (dr *deathRow[K]) Get(idx int) Item[K] {
 	if idx < 0 || idx >= len(*dr) {
 		return nil
 	}
@@ -59,28 +59,28 @@ func (dr *deathRow) Get(idx int) Item {
 	return (*dr)[idx]
 }
 
-func (dr *deathRow) GetFirst() Item {
+func (dr *deathRow[K]) GetFirst() Item[K] {
 	return dr.Get(0)
 }
 
-func (dr *deathRow) GetLast() Item {
+func (dr *deathRow[K]) GetLast() Item[K] {
 	return dr.Get(dr.Len() - 1)
 }
 
-func (dr *deathRow) prolong(item Item, ttl time.Duration) {
+func (dr *deathRow[K]) prolong(item Item[K], ttl time.Duration) {
 	item.Prolong(ttl)
 
 	heap.Fix(dr, item.Index())
 }
 
-func (dr *deathRow) drop(item Item) {
+func (dr *deathRow[K]) drop(item Item[K]) {
 	// set very low time to keep it at top position
 	item.Prolong(-math.MaxInt)
 	// remove will swap it to top and pop it - it should be poppable since its dead
 	heap.Remove(dr, item.Index())
 }
 
-func (dr *deathRow) canPop() bool {
+func (dr *deathRow[K]) canPop() bool {
 	if dr.Len() <= 0 {
 		return false
 	}

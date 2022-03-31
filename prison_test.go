@@ -12,21 +12,21 @@ import (
 func TestNewPrison(t *testing.T) {
 	tests := []struct {
 		ID   string
-		want *Prison
+		want *Prison[string]
 	}{
 		{
 			ID: "basic",
-			want: &Prison{
+			want: &Prison[string]{
 				mu:    sync.Mutex{},
-				dr:    newDeathRow(),
-				items: map[string]Item{},
+				dr:    newDeathRow[string](),
+				items: map[string]Item[string]{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
-			if got := NewPrison(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewPrison() = %+v, want %+v", got, tt.want)
+			if got := NewPrison[string](); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewPrison[string]() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
@@ -78,7 +78,7 @@ func Test_Prison_Push(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
-			p := NewPrison()
+			p := NewPrison[string]()
 
 			uniqueitems := map[string]bool{}
 			for _, push := range tt.pushes {
@@ -175,7 +175,7 @@ func Test_Prison_Pop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
-			p := NewPrison()
+			p := NewPrison[string]()
 
 			for _, push := range tt.pushes {
 				if push.justWaitDuration > 0 {
@@ -297,7 +297,7 @@ func Test_Prison_Drop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
-			p := NewPrison()
+			p := NewPrison[string]()
 
 			uniqueGroups := map[string]bool{}
 			for _, push := range tt.pushes {
@@ -327,7 +327,7 @@ func Test_Prison_Drop(t *testing.T) {
 }
 
 func TestPrisonComplex(t *testing.T) {
-	p := NewPrison()
+	p := NewPrison[string]()
 
 	// push a lot at once
 	batchN := 10
@@ -359,7 +359,7 @@ func TestPrisonComplex(t *testing.T) {
 }
 
 func TestPrisonPopper(t *testing.T) {
-	p := NewPrison()
+	p := NewPrison[string]()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
