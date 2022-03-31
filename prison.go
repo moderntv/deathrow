@@ -43,7 +43,6 @@ func (p *Prison[K]) Pop() (items []Item[K]) {
 	defer p.mu.Unlock()
 
 	items = []Item[K]{}
-
 	for p.dr.canPop() {
 		itemI := heap.Pop(p.dr)
 		if itemI == nil {
