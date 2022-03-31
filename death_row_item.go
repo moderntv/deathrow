@@ -2,8 +2,8 @@ package deathrow
 
 import "time"
 
-// Item contains information about aggregation group expiration
-type Item struct {
+// item contains the information about the expiration
+type item struct {
 	ID       string
 	Deadline time.Time
 	index    int // index in heap
@@ -11,8 +11,8 @@ type Item struct {
 	ttl time.Duration
 }
 
-func NewItem(id string, ttl time.Duration) *Item {
-	return &Item{
+func newItem(id string, ttl time.Duration) *item {
+	return &item{
 		ID:       id,
 		Deadline: time.Now().Add(ttl),
 		index:    0,
@@ -22,14 +22,14 @@ func NewItem(id string, ttl time.Duration) *Item {
 }
 
 // IsDeadMan decides whether this item is after its deadline
-func (ag *Item) IsDeadMan() bool {
+func (ag *item) IsDeadMan() bool {
 	return time.Now().After(ag.Deadline)
 }
 
-func (ag *Item) prolongDefault() {
+func (ag *item) prolongDefault() {
 	ag.prolong(ag.ttl)
 }
 
-func (ag *Item) prolong(ttl time.Duration) {
+func (ag *item) prolong(ttl time.Duration) {
 	ag.Deadline = time.Now().Add(ttl)
 }

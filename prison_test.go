@@ -19,7 +19,7 @@ func TestNewPrison(t *testing.T) {
 			want: &Prison{
 				mu:    sync.Mutex{},
 				dr:    newDeathRow(),
-				items: map[string]*Item{},
+				items: map[string]*item{},
 			},
 		},
 	}

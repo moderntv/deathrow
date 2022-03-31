@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type deathRow []*Item
+type deathRow []*item
 
 func newDeathRow() *deathRow {
 	return &deathRow{}
@@ -32,7 +32,7 @@ func (dr deathRow) Swap(i, j int) {
 
 func (dr *deathRow) Push(x any) {
 	n := len(*dr)
-	item := x.(*Item)
+	item := x.(*item)
 	item.index = n
 
 	*dr = append(*dr, item)
@@ -51,7 +51,7 @@ func (dr *deathRow) Pop() any {
 	return item
 }
 
-func (dr *deathRow) Get(idx int) *Item {
+func (dr *deathRow) Get(idx int) *item {
 	if idx < 0 || idx >= len(*dr) {
 		return nil
 	}
@@ -59,21 +59,21 @@ func (dr *deathRow) Get(idx int) *Item {
 	return (*dr)[idx]
 }
 
-func (dr *deathRow) GetFirst() *Item {
+func (dr *deathRow) GetFirst() *item {
 	return dr.Get(0)
 }
 
-func (dr *deathRow) GetLast() *Item {
+func (dr *deathRow) GetLast() *item {
 	return dr.Get(dr.Len() - 1)
 }
 
-func (dr *deathRow) prolong(item *Item, ttl time.Duration) {
+func (dr *deathRow) prolong(item *item, ttl time.Duration) {
 	item.prolong(ttl)
 
 	heap.Fix(dr, item.index)
 }
 
-func (dr *deathRow) drop(item *Item) {
+func (dr *deathRow) drop(item *item) {
 	// set very low time to keep it at top position
 	item.Deadline = time.Now().Add(-math.MaxInt)
 	// remove will swap it to top and pop it - it should be poppable since its dead
