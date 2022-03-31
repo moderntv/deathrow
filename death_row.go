@@ -19,12 +19,6 @@ func (dr deathRow[K]) Less(i, j int) bool {
 }
 
 func (dr deathRow[K]) Swap(i, j int) {
-	// log.Printf(
-	//     "swapping %s (i=%d, idx=%d, d=%v) and %s (j=%d, idx=%d,d=%v)",
-	//     dr[i].ID, i, dr[i].index, time.Until(dr[i].Deadline),
-	//     dr[j].ID, j, dr[j].index, time.Until(dr[j].Deadline),
-	// )
-
 	dr[i], dr[j] = dr[j], dr[i]
 	dr[i].SetIndex(i)
 	dr[j].SetIndex(j)
