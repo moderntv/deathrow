@@ -6,8 +6,10 @@ test:
 		$(if $(TEST_VERBOSE),-v,) \
 		-race \
         -timeout 1h \
-		-coverprofile coverage.txt \
+		-coverprofile cp.out \
 		-run '$(TEST_RUN)' \
 		./...
 
-
+.PHONY: lint
+lint:
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint run
