@@ -1,2 +1,31 @@
+# Binaries for programs and plugins
+bin
+build
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Outputs of the go coverage tool, static analysis etc.
+*.out*
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Configurations
+.env
+
+# Data
+data
+
+# MacOS
+.DS_Store
+
+# IDEs and editors
+.idea
 .vscode
-coverage.txt
