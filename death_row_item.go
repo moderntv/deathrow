@@ -9,10 +9,10 @@ type Item[K comparable] interface {
 	Prolong(ttl time.Duration)
 
 	Index() int
-	SetIndex(int)
+	SetIndex(index int)
 }
 
-// Item contains the information about the expiration
+// Item contains the information about the expiration.
 type item[K comparable] struct {
 	id       K
 	deadline time.Time
@@ -36,7 +36,7 @@ func (i *item[K]) Deadline() time.Time { return i.deadline }
 func (i *item[K]) Index() int          { return i.index }
 func (i *item[K]) SetIndex(idx int)    { i.index = idx }
 
-// ShouldExecute decides whether this item is after its deadline
+// ShouldExecute decides whether this item is after its deadline.
 func (i *item[K]) ShouldExecute() bool {
 	return time.Now().After(i.deadline)
 }

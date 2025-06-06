@@ -1,4 +1,4 @@
-package deathrow
+package deathrow //nolint: testpackage
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewPrison(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		ID   string
 		want *Prison[string]
@@ -25,6 +27,8 @@ func TestNewPrison(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
+			t.Parallel()
+
 			if got := NewPrison[string](); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewPrison[string]() = %+v, want %+v", got, tt.want)
 			}
@@ -33,6 +37,8 @@ func TestNewPrison(t *testing.T) {
 }
 
 func Test_Prison_Push(t *testing.T) {
+	t.Parallel()
+
 	type push struct {
 		itemID string
 		ttl    time.Duration
@@ -78,6 +84,7 @@ func Test_Prison_Push(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
+
 			p := NewPrison[string]()
 
 			uniqueitems := map[string]bool{}
@@ -97,6 +104,8 @@ func Test_Prison_Push(t *testing.T) {
 }
 
 func Test_Prison_Pop(t *testing.T) {
+	t.Parallel()
+
 	type push struct {
 		itemID string
 		ttl    time.Duration
@@ -175,6 +184,7 @@ func Test_Prison_Pop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
+
 			p := NewPrison[string]()
 
 			for _, push := range tt.pushes {
@@ -202,6 +212,8 @@ func Test_Prison_Pop(t *testing.T) {
 }
 
 func Test_Prison_Drop(t *testing.T) {
+	t.Parallel()
+
 	type push struct {
 		itemID string
 		ttl    time.Duration
@@ -297,6 +309,7 @@ func Test_Prison_Drop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.ID, func(t *testing.T) {
 			t.Parallel()
+
 			p := NewPrison[string]()
 
 			uniqueGroups := map[string]bool{}
@@ -327,18 +340,20 @@ func Test_Prison_Drop(t *testing.T) {
 }
 
 func TestPrisonComplex(t *testing.T) {
+	t.Parallel()
+
 	p := NewPrison[string]()
 
 	// push a lot at once
 	batchN := 10
-	for i := 0; i < batchN; i++ {
+	for i := range batchN {
 		p.Push(fmt.Sprintf("item%d", i), 1*time.Second)
 	}
 
 	dropped := 3
 	p.Drop("item0")
-	p.Drop(fmt.Sprintf("item%d", int(batchN/2)))
-	p.Drop(fmt.Sprintf("item%d", int(batchN/2)+1))
+	p.Drop(fmt.Sprintf("item%d", batchN/2))
+	p.Drop(fmt.Sprintf("item%d", batchN/2+1))
 
 	p.mu.Lock()
 	for i, item := range *p.dr {
@@ -359,9 +374,11 @@ func TestPrisonComplex(t *testing.T) {
 }
 
 func TestPrisonPopper(t *testing.T) {
+	t.Parallel()
+
 	start := time.Now()
 	p := NewPrison[string]()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	batchN := 10
@@ -384,7 +401,7 @@ func TestPrisonPopper(t *testing.T) {
 
 	time.Sleep(500 * time.Millisecond)
 
-	for i := 0; i < batchN; i++ {
+	for i := range batchN {
 		p.Push(fmt.Sprintf("item%d", i), time.Duration(i/2)*time.Second)
 	}
 
@@ -393,7 +410,7 @@ func TestPrisonPopper(t *testing.T) {
 		t.Errorf("took too long: %v", dur)
 	}
 
-	for i := 0; i < batchN; i++ {
+	for range batchN {
 		<-popped
 	}
 }
