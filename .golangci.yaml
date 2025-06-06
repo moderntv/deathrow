@@ -1,0 +1,58 @@
+---
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  default: all
+  disable:
+    # restrictive
+    - exhaustruct
+    - varnamelen
+    - nlreturn
+    - funlen
+    - nonamedreturns
+    - gochecknoglobals
+    - wsl
+    - nakedret
+    - err113
+    # enable later
+    - unused
+    - forcetypeassert
+    - revive
+    - ireturn
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: strict
+          files:
+            - $all
+          allow:
+            - $gostd
+            - github.com/moderntv
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  settings:
+    golines:
+      max-len: 120
+
+issues:
+  fix: true
+
+output:
+  formats:
+    text:
+      path: stdout
+    tab:
+      path: golangci-lint.out
+      colors: false
+    html:
+      path: golangci-lint.out.html
